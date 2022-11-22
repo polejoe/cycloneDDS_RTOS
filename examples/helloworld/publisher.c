@@ -14,6 +14,8 @@ int main (int argc, char ** argv)
   (void)argc;
   (void)argv;
 
+  dds_set_log_mask(DDS_LC_ALL);
+
   /* Create a Participant. */
   participant = dds_create_participant (DDS_DOMAIN_DEFAULT, NULL, NULL);
   if (participant < 0)

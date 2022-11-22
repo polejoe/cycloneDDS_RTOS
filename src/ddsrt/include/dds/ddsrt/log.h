@@ -87,8 +87,12 @@ extern "C" {
      DDS_LC_CONTENT | DDS_LC_SHM)
 /** @}*/
 
+#if 0
 #define DDS_LOG_MASK \
     (DDS_LC_FATAL | DDS_LC_ERROR | DDS_LC_WARNING | DDS_LC_INFO)
+#else
+#define DDS_LOG_MASK DDS_LC_ALL
+#endif
 
 #define DDS_TRACE_MASK \
     (~DDS_LOG_MASK)
