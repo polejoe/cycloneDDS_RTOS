@@ -20,7 +20,8 @@ int main (int argc, char ** argv)
   (void)argc;
   (void)argv;
 
-  dds_set_log_mask(DDS_LC_ALL);
+  //dds_set_log_mask(DDS_LC_ALL);
+  dds_set_log_mask(DDS_LC_FATAL | DDS_LC_ERROR | DDS_LC_WARNING | DDS_LC_INFO | DDS_LC_CONFIG | DDS_LC_DISCOVERY);
 
   /* Create a Participant. */
   participant = dds_create_participant (DDS_DOMAIN_DEFAULT, NULL, NULL);
@@ -65,12 +66,14 @@ int main (int argc, char ** argv)
       printf ("=== [Subscriber] Received : ");
       printf ("Message (%"PRId32", %s)\n", msg->userID, msg->message);
       fflush (stdout);
-      break;
+      //break;
+      infos[0].valid_data = 0;
     }
-    else
+    //else
     {
       /* Polling sleep. */
-      dds_sleepfor (DDS_MSECS (20));
+      //dds_sleepfor (DDS_MSECS (2000));
+      dds_sleepfor (DDS_SECS (2));
     }
   }
 

@@ -39,16 +39,16 @@ mk_app()
     cmake --build . | tee -a $logf
 
     echo "@@@@@@@@@@@@@@ build helloworld done, run in $PWD "
-    cd -
+    #cd -
 }
 
 
 if [ "$1" = "lib" ]; then
     mk_lib
-elif [ "$1" = "app" ]; then
+elif [ "$1" = "all" ]; then
+    mk_lib
     mk_app
 else
-    mk_lib
     mk_app
 fi
 
