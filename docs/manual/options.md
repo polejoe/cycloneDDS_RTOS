@@ -120,7 +120,7 @@ Integer
 
 This element specifies the maximum DDSI participant index selected by this instance of the Cyclone DDS service if the Discovery/ParticipantIndex is "auto".
 
-The default value is: "9".
+The default value is: "2".
 
 
 #### //CycloneDDS/Domain/Discovery/ParticipantIndex
@@ -1864,7 +1864,7 @@ The categorisation of tracing output is incomplete and hence most of the verbosi
 The default value is: "none".
 <!--- generated from ddsi_config.h[87da706bc9c463a87326e87b311d8291d5761d43] -->
 <!--- generated from ddsi_cfgunits.h[fc550f1620aa20dcd9244ef4e24299d5001efbb4] -->
-<!--- generated from ddsi_cfgelems.h[c54fbee60d780fadc6ebc3c738c5d2c5051e689a] -->
+<!--- generated from ddsi_cfgelems.h[98efee68758897cd38f43bbd66bb119988780485] -->
 <!--- generated from ddsi_config.c[98486715ac072b7b3cc3a449d55676be1218c98c] -->
 <!--- generated from _confgen.h[01ffa8a2e53b2309451756861466551cfe28c8ce] -->
 <!--- generated from _confgen.c[13cd40932d695abae1470202a42c18dc4d09ea84] -->

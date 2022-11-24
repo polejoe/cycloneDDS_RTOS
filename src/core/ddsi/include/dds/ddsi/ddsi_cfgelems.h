@@ -1904,7 +1904,7 @@ static struct cfgelem discovery_cfgelems[] = {
       "and fixing the participant index has no adverse effects, it is "
       "recommended that the second be option be used.</p>"
     )),
-  INT("MaxAutoParticipantIndex", NULL, 1, "9",
+  INT("MaxAutoParticipantIndex", NULL, 1, "2",  /* 9 in default, RTPS discovery dest port number if NO remote_peer assigned. */
     MEMBER(maxAutoParticipantIndex),
     FUNCTIONS(0, uf_natint, 0, pf_int),
     DESCRIPTION(

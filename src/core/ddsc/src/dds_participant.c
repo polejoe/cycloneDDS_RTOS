@@ -100,13 +100,26 @@ dds_entity_t dds_create_participant (const dds_domainid_t domain, const dds_qos_
   dds_participant * pp;
   ddsi_plist_t plist;
   dds_qos_t *new_qos = NULL;
-  const char *config = "";
 
   /* Make sure DDS instance is initialized. */
   if ((ret = dds_init ()) < 0)
     goto err_dds_init;
 
+  #ifdef DDS_HAS_UNICAST_DISCOVERY
+#error " enable UNICAST DISCOVERY ..."
+  /* DDS with unicast discovery, need explicit assign a remote peer IP/port
+    refer to https://github.com/eclipse-cyclonedds/cyclonedds/issues/1051
+    * if no remote_peer assigned, CDDS RTPS will broadcast discovery on all gv->interface[i] with portid assigned in MaxAutoParticipantIndex
+   */
+  const char *config = "<CycloneDDS><Domain id=\"any\">\
+<Discovery>\
+  <Peers><Peer address=\"192.168.11.55:7400\"/></Peers>\
+</Discovery>\
+</Domain></CycloneDDS>";
+  #else
+  const char *config = "";
   (void) ddsrt_getenv ("CYCLONEDDS_URI", &config);
+  #endif
 
   if ((ret = dds_domain_create_internal (&dom, domain, true, config)) < 0)
     goto err_domain_create;
