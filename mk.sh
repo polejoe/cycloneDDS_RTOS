@@ -26,9 +26,19 @@ mk_lib()
     cd -
 }
 
+
+list="helloworld cdds_rgb throughput listtopics"
+
+
 mk_app()
 {
-    cd ${ROOT}/examples/helloworld
+
+  for dd in $list; do
+
+    cd ${ROOT}/examples/$dd || {
+        echo " app $dd not exist!"
+        continue
+    }
     mkdir -p build
     cd build
     rm -f CMakeCache.txt
@@ -38,7 +48,8 @@ mk_app()
     make clean 2>&1 >/dev/null
     cmake --build . | tee -a $logf
 
-    echo "@@@@@@@@@@@@@@ build helloworld done, run in $PWD "
+    echo "@@@@@@@@@@@@@@ build APP $dd done "
+  done
     #cd -
 }
 
