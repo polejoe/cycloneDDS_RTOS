@@ -24,6 +24,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "dds/config.h"
+#include "dds/features.h"
+
 #include "dds/export.h"
 #include "dds/ddsrt/attributes.h"
 
@@ -87,7 +90,7 @@ extern "C" {
      DDS_LC_CONTENT | DDS_LC_SHM)
 /** @}*/
 
-#if 0
+#ifndef DDSRT_WITH_FREERTOSTCP
 #define DDS_LOG_MASK \
     (DDS_LC_FATAL | DDS_LC_ERROR | DDS_LC_WARNING | DDS_LC_INFO)
 #else
@@ -386,9 +389,15 @@ dds_log(
  * passed just as easily, they are rejected so that tracing is kept entirely
  * separate from logging, if only cosmetic.
  */
+#ifndef DDSRT_WITH_FREERTOSTCP
 #define DDS_LOG(cat, ...) \
+        ((dds_get_log_mask() & (cat)) ? \
+          dds_log((cat), __FILE__, __LINE__, DDS_FUNCTION, __VA_ARGS__) : 0)
+#else
+#define DDS_LOG(cat, fmt, ...) \
     ((dds_get_log_mask() & (cat)) ? \
-      dds_log((cat), __FILE__, __LINE__, DDS_FUNCTION, __VA_ARGS__) : 0)
+      dds_log((cat), __FILE__, __LINE__, DDS_FUNCTION, fmt, ##__VA_ARGS__) : 0)
+#endif
 
 /**
  * @brief Write a log message with a domain id override.
@@ -402,9 +411,9 @@ dds_log(
  * passed just as easily, they are rejected so that tracing is kept entirely
  * separate from logging, if only cosmetic.
  */
-#define DDS_ILOG(cat, domid, ...) \
+#define DDS_ILOG(cat, domid, fmt, ...) \
     ((dds_get_log_mask() & (cat)) ? \
-      dds_log_id((cat), (domid), __FILE__, __LINE__, DDS_FUNCTION, __VA_ARGS__) : 0)
+      dds_log_id((cat), (domid), __FILE__, __LINE__, DDS_FUNCTION, fmt " \n", ##__VA_ARGS__) : 0)
 
 /**
  * @brief Write a log message using a specific config.
@@ -418,9 +427,9 @@ dds_log(
  * passed just as easily, they are rejected so that tracing is kept entirely
  * separate from logging, if only cosmetic.
  */
-#define DDS_CLOG(cat, cfg, ...) \
+#define DDS_CLOG(cat, cfg, fmt, ...) \
     (((cfg)->c.mask & (cat)) ? \
-      dds_log_cfg((cfg), (cat), __FILE__, __LINE__, DDS_FUNCTION, __VA_ARGS__) : 0)
+      dds_log_cfg((cfg), (cat), __FILE__, __LINE__, DDS_FUNCTION, fmt "\n", ##__VA_ARGS__) : 0)
 
 /** Write a log message of type #DDS_LC_INFO into global log. */
 #define DDS_INFO(...) \
@@ -432,8 +441,8 @@ dds_log(
 #define DDS_ERROR(...) \
   DDS_LOG(DDS_LC_ERROR, __VA_ARGS__)
 /** Write a log message of type #DDS_LC_ERROR into global log and abort. */
-#define DDS_FATAL(...) \
-  dds_log(DDS_LC_FATAL, __FILE__, __LINE__, DDS_FUNCTION, __VA_ARGS__)
+#define DDS_FATAL(fmt, ...) \
+  dds_log(DDS_LC_FATAL, __FILE__, __LINE__, DDS_FUNCTION, fmt "\n", ##__VA_ARGS__)
 
 /* MSVC mishandles __VA_ARGS__ while claiming to be conforming -- and even
    if they have a defensible implement, they still differ from every other

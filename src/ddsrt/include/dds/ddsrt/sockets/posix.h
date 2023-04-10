@@ -31,6 +31,11 @@ extern "C" {
 #endif
 
 typedef int ddsrt_socket_t;
+
+typedef fd_set*     ddsrt_fd_set_t; /* compatible with FreeRTOS +TCP */
+#define SELECT_TIMEOUT_MS       DDS_INFINITY
+
+
 #define DDSRT_INVALID_SOCKET (-1)
 #define PRIdSOCK "d"
 
