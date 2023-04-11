@@ -23,7 +23,7 @@ struct ddsi_tran_conn;
 
 /* address field in locator maintained in network byte order, the rest in host */
 typedef struct {
-  int32_t kind; // NN_LOCATOR_KIND_UDPv4
+  int32_t kind;
   uint32_t port;
   unsigned char address[16];
 } ddsi_locator_t;

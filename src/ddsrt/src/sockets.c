@@ -19,9 +19,6 @@
 #include "dds/ddsrt/heap.h"
 #include "dds/ddsrt/log.h"
 
-#ifdef DDSRT_WITH_FREERTOSTCP
-# warning " *** FreeRTOS-Plus-TCP debug include tree "
-#else
 #if !LWIP_SOCKET
 # if !defined(_WIN32)
 #   include <arpa/inet.h>
@@ -32,7 +29,6 @@
 #   endif /* __linux */
 # endif /* _WIN32 */
 #endif /* LWIP_SOCKET */
-#endif /* FreeRTOSTCP    */
 
 #if defined __APPLE__
 #include <net/if_dl.h>
@@ -123,11 +119,7 @@ ddsrt_sockaddr_isunspecified(const struct sockaddr *__restrict sa)
       return IN6_IS_ADDR_UNSPECIFIED(&((struct sockaddr_in6*)sa)->sin6_addr);
 #endif
     case AF_INET:
-        #ifdef DDSRT_WITH_FREERTOSTCP
-        return (((struct sockaddr_in *)sa)->sin_addr == 0);
-        #else
-        return (((struct sockaddr_in *)sa)->sin_addr.s_addr == 0);
-        #endif
+      return (((struct sockaddr_in *)sa)->sin_addr.s_addr == 0);
   }
 
   return false;
@@ -145,12 +137,8 @@ ddsrt_sockaddr_isloopback(const struct sockaddr *__restrict sa)
         &((const struct sockaddr_in6 *)sa)->sin6_addr);
 #endif /* DDSRT_HAVE_IPV6 */
     case AF_INET:
-        #ifdef DDSRT_WITH_FREERTOSTCP
-        return (((const struct sockaddr_in *)sa)->sin_addr == htonl(INADDR_LOOPBACK));
-        #else
       return (((const struct sockaddr_in *)sa)->sin_addr.s_addr
                   == htonl(INADDR_LOOPBACK));
-        #endif
   }
 
   return false;
@@ -172,19 +160,11 @@ ddsrt_sockaddr_insamesubnet(
 
   switch (sa1->sa_family) {
     case AF_INET: {
-        #ifdef DDSRT_WITH_FREERTOSTCP
-      eq = ((((struct sockaddr_in *)sa1)->sin_addr &
-             ((struct sockaddr_in *)mask)->sin_addr)
-                 ==
-            (((struct sockaddr_in *)sa2)->sin_addr &
-             ((struct sockaddr_in *)mask)->sin_addr));
-        #else
       eq = ((((struct sockaddr_in *)sa1)->sin_addr.s_addr &
              ((struct sockaddr_in *)mask)->sin_addr.s_addr)
                  ==
             (((struct sockaddr_in *)sa2)->sin_addr.s_addr &
              ((struct sockaddr_in *)mask)->sin_addr.s_addr));
-        #endif
       } break;
 #if DDSRT_HAVE_IPV6
     case AF_INET6: {
@@ -216,24 +196,14 @@ ddsrt_sockaddrfromstr(int af, const char *str, void *sa)
 
   switch (af) {
     case AF_INET: {
-    #ifdef DDSRT_WITH_FREERTOSTCP
-      in_addr_t buf;
-    #else
       struct in_addr buf;
-    #endif
 #if DDSRT_HAVE_INET_PTON
       if (inet_pton(af, str, &buf) != 1) {
         return DDS_RETCODE_BAD_PARAMETER;
       }
 #else
-    #ifdef DDSRT_WITH_FREERTOSTCP
-      buf = inet_addr (str);
-      if (buf == (in_addr_t)(-1))
-    #else
       buf.s_addr = inet_addr (str);
-      if (buf.s_addr == (in_addr_t)(-1))
-    #endif
-      {
+      if (buf.s_addr == (in_addr_t)-1) {
         return DDS_RETCODE_BAD_PARAMETER;
       }
 #endif
@@ -277,11 +247,7 @@ DDSRT_WARNING_GNUC_OFF(sign-conversion)
         AF_INET, &((struct sockaddr_in *)sa)->sin_addr, buf, (uint32_t)size);
 #else
       {
-        #ifdef DDSRT_WITH_FREERTOSTCP
-          in_addr_t x = ntohl(((struct sockaddr_in *)sa)->sin_addr);
-        #else
           in_addr_t x = ntohl(((struct sockaddr_in *)sa)->sin_addr.s_addr);
-        #endif
           snprintf(buf,size,"%u.%u.%u.%u",(x>>24),(x>>16)&0xff,(x>>8)&0xff,x&0xff);
           ptr = buf;
       }

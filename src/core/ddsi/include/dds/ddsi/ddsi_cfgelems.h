@@ -15,10 +15,6 @@
 
 #include "dds/features.h"
 
-#ifdef DDSRT_WITH_FREERTOSTCP
-#warning " debug rtos tcp stack including   "
-#include "dds/ddsrt/sockets/freertos_plus_tcp.h"
-#endif
 
 static struct cfgelem network_interface_attributes[] = {
   STRING("autodetermine", NULL, 1, "false",
@@ -160,16 +156,7 @@ static struct cfgelem general_cfgelems[] = {
       "translated to an internal address by replacing the network portion of "
       "the external address with the corresponding portion of the preferred "
       "network interface address. This option is IPv4-only.</p>")),
-  LIST("AllowMulticast", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-/*
- * he "spdp" leaves multicast enabled for initial discovery only
- * https://github.com/ros2/rmw_cyclonedds/issues/251
- */
-  "spdp",
-#else
-  "default",
-#endif
+  LIST("AllowMulticast", NULL, 1, "default",
     MEMBER(allowMulticast),
     FUNCTIONS(0, uf_allow_multicast, 0, pf_allow_multicast),
     DESCRIPTION(
@@ -225,34 +212,19 @@ static struct cfgelem general_cfgelems[] = {
       "packets, to bypass the local routing tables. This is generally useful "
       "only when the routing tables cannot be trusted, which is highly "
       "unusual.</p>")),
-  ENUM("UseIPv6", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-  "false",
-#else
-  "default",
-#endif
+  ENUM("UseIPv6", NULL, 1, "default",
     MEMBER(compat_use_ipv6),
     FUNCTIONS(0, uf_boolean_default, 0, pf_nop),
     DESCRIPTION("<p>Deprecated (use Transport instead)</p>"),
     VALUES("false","true","default")),
-  ENUM("Transport", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-  "udp",
-#else
-  "default",
-#endif
+  ENUM("Transport", NULL, 1, "default",
     MEMBER(transport_selector),
     FUNCTIONS(0, uf_transport_selector, 0, pf_transport_selector),
     DESCRIPTION(
       "<p>This element allows selecting the transport to be used (udp, udp6, "
       "tcp, tcp6, raweth)</p>"),
     VALUES("default","udp","udp6","tcp","tcp6","raweth")),
-  BOOL("EnableMulticastLoopback", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-  "false",
-#else
-  "true",
-#endif
+  BOOL("EnableMulticastLoopback", NULL, 1, "true",
     MEMBER(enableMulticastLoopback),
     FUNCTIONS(0, uf_boolean, 0, pf_boolean),
     DESCRIPTION(
@@ -262,21 +234,7 @@ static struct cfgelem general_cfgelems[] = {
       "communications, but if a node runs only a single Cyclone DDS service "
       "and does not host any other DDSI-capable programs, it should be set "
       "to \"false\" for improved performance.</p>")),
-
-  STRING("MaxMessageSize", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-/* ddsi_config.max_msg_size and fragment_size will decide how many fragments in single submsg.
- * keep this below MTU if STACK not support IP fragments
- */
- #ifdef EQOS_TX_JUMBO_ENABLED
-    "8972 B",
- #else
-    "1456 B",
- #endif
-
-#else
-  "14720 B",
-#endif
+  STRING("MaxMessageSize", NULL, 1, "14720 B",
     MEMBER(max_msg_size),
     FUNCTIONS(0, uf_memsize, 0, pf_memsize),
     DESCRIPTION(
@@ -288,16 +246,7 @@ static struct cfgelem general_cfgelems[] = {
       "<p>On some networks it may be necessary to set this item to keep the "
       "packetsize below the MTU to prevent IP fragmentation.</p>"),
     UNIT("memsize")),
-  STRING("MaxRexmitMessageSize", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-    #ifdef EQOS_TX_JUMBO_ENABLED
-    "8972 B",
-    #else
-    "1464 B",
-    #endif
-#else
-    "1456 B",
-#endif
+  STRING("MaxRexmitMessageSize", NULL, 1, "1456 B",
     MEMBER(max_rexmit_msg_size),
     FUNCTIONS(0, uf_memsize, 0, pf_memsize),
     DESCRIPTION(
@@ -309,17 +258,7 @@ static struct cfgelem general_cfgelems[] = {
       "<p>On some networks it may be necessary to set this item to keep the "
       "packetsize below the MTU to prevent IP fragmentation.</p>"),
     UNIT("memsize")),
-  STRING("FragmentSize", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-    #ifdef EQOS_TX_JUMBO_ENABLED
-    /* ipMAX_UDP_PAYLOAD_LENGTH(8972) > $FragSize + 20(RTPS_HDR) + 12(INFO_TS) + 36(DATA_HDR) + 28(HEART_BEAT) */
-    "8864 B",
-    #else
-    "1400 B",
-    #endif
-#else
-  "1344 B",
-#endif
+  STRING("FragmentSize", NULL, 1, "1344 B",
     MEMBER(fragment_size),
     FUNCTIONS(0, uf_memsize16, 0, pf_memsize16),
     DESCRIPTION(
@@ -999,15 +938,7 @@ static struct cfgelem internal_watermarks_cfgelems[] = {
       "expressed in bytes. A suspended writer resumes transmitting when its "
       "Cyclone DDS WHC shrinks to this size.</p>"),
     UNIT("memsize")),
-  STRING("WhcHigh", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-  /* 512K->24M: > 4K RGB888 framesize
-   * ALSO to be sure seqeunce limitation defined in idl
-   */
-   "24576 kB",
-#else
-  "500 kB",
-#endif
+  STRING("WhcHigh", NULL, 1, "500 kB",
     MEMBER(whc_highwater_mark),
     FUNCTIONS(0, uf_memsize, 0, pf_memsize),
     DESCRIPTION(
@@ -1351,16 +1282,7 @@ static struct cfgelem internal_cfgelems[] = {
       "<p>This element allows configuring the base interval for sending "
       "writer heartbeats and the bounds within which it can vary.</p>"),
     UNIT("duration_inf")),
-
-  STRING("MaxQueuedRexmitBytes", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-  /* 512K->24M: > 4K RGB888 framesize
-   * ALSO to be sure seqeunce limitation defined in idl
-   */
-  "24576 kB",
-#else
-  "512 kB",
-#endif
+  STRING("MaxQueuedRexmitBytes", NULL, 1, "512 kB",
     MEMBER(max_queued_rexmit_bytes),
     FUNCTIONS(0, uf_memsize, 0, pf_memsize),
     DESCRIPTION(
@@ -1370,14 +1292,7 @@ static struct cfgelem internal_cfgelems[] = {
       "NackDelay * AuxiliaryBandwidthLimit. It must be large enough to "
       "contain the largest sample that may need to be retransmitted.</p>"),
     UNIT("memsize")),
-
-  INT("MaxQueuedRexmitMessages", NULL, 1,
-#ifdef DDSRT_WITH_FREERTOSTCP
-    /* 200->20480: > 4K framesize / fragmen_size */
-    "20480",
-#else
-    "200",
-#endif
+  INT("MaxQueuedRexmitMessages", NULL, 1, "200",
     MEMBER(max_queued_rexmit_msgs),
     FUNCTIONS(0, uf_uint, 0, pf_uint),
     DESCRIPTION(
@@ -1889,11 +1804,7 @@ static struct cfgelem shmem_cfgelems[] = {
 #endif
 
 static struct cfgelem discovery_peer_cfgattrs[] = {
-#ifdef DDSRT_WITH_FREERTOSTCP
-  STRING("Address", NULL, 1, "192.168.11.3:7400",   // Not working, use XML string
-#else
   STRING("Address", NULL, 1, NULL,
-#endif
     MEMBEROF(ddsi_config_peer_listelem, peer),
     FUNCTIONS(0, uf_ipv4, ff_free, pf_string),
     DESCRIPTION(
@@ -1918,16 +1829,6 @@ static struct cfgelem discovery_peers_group_cfgelems[] = {
 };
 
 static struct cfgelem discovery_peers_cfgelems[] = {
-#ifdef DDSRT_WITH_FREERTOSTCP
-  GROUP("Peer", NULL, discovery_peer_cfgattrs, INT_MAX,  // Not working, use XML string
-    MEMBER(peers),
-    FUNCTIONS(if_peer, 0, 0, 0),
-    DESCRIPTION(
-      "<p>This element specifies the base port number (refer to the DDSI 2.1 "
-      "specification, section 9.6.1, constant PB).</p>"
-    )),
-
-#else
   GROUP("Peer", NULL, discovery_peer_cfgattrs, INT_MAX,
     MEMBER(peers),
     FUNCTIONS(if_peer, 0, 0, 0),
@@ -1944,7 +1845,6 @@ static struct cfgelem discovery_peers_cfgelems[] = {
     ),
     MAXIMUM(0)), /* Group element can occur more than once, but 1 is required
                     because of the way its processed (for now) */
-#endif
   END_MARKER
 };
 
@@ -2000,12 +1900,7 @@ static struct cfgelem discovery_cfgelems[] = {
       "and fixing the participant index has no adverse effects, it is "
       "recommended that the second be option be used.</p>"
     )),
-#ifdef DDSRT_WITH_FREERTOSTCP
-    /* polling port number to dest peer */
-  INT("MaxAutoParticipantIndex", NULL, 1, "2",  /* 9 */
-#else
   INT("MaxAutoParticipantIndex", NULL, 1, "9",
-#endif
     MEMBER(maxAutoParticipantIndex),
     FUNCTIONS(0, uf_natint, 0, pf_int),
     DESCRIPTION(
